@@ -28,6 +28,11 @@ jobs:
         node-version: '18'
         cache: 'npm'
         
+    - name: Clean up old config files
+      run: |
+        rm -f eslint.config.js eslint.config.mjs
+        ls -la eslint.config.*
+      
     - name: Clear npm cache
       run: npm cache clean --force
       
@@ -81,6 +86,11 @@ jobs:
         node-version: '18'
         cache: 'npm'
         
+    - name: Clean up old config files
+      run: |
+        rm -f eslint.config.js eslint.config.mjs
+        ls -la eslint.config.*
+      
     - name: Clear npm cache
       run: npm cache clean --force
       
