@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  # Pull requests to develop or master - run checks only
+  pull_request:
+    branches: [ develop, master ]
+    paths: [ 'src/**' ]
+  
+  # Push to feature branches (not develop/master) - run checks and auto-format
+  push:
+    branches-ignore: [ develop, master ]
+    paths: [ 'src/**' ]
+
+jobs:
+  # Job for pull requests - check only (no auto-formatting)
+  pr-checks:
+    if: github.event_name == 'pull_request'
+    name: PR Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run ESLint
+      run: npm run lint:js
+      
+    - name: Check Prettier formatting
+      run: npm run check:format
+      
+    - name: Run stylelint
+      run: npm run lint:css
+      
+    - name: Run HTMLHint
+      run: npm run lint:html
+
+    - name: Comment PR on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '❌ **Quality checks failed!**\n\nPlease fix the linting and formatting issues before merging.\n\nRun the following commands locally:\n```bash\nnpm run ci:format  # Fix formatting\nnpm run lint       # Check for remaining issues\n```'
+          })
+
+  # Job for feature branch pushes - check and auto-format
+  feature-branch-ci:
+    if: github.event_name == 'push'
+    name: Feature Branch CI with Auto-format
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run ESLint
+      run: npm run lint:js
+      continue-on-error: true
+      
+    - name: Auto-format with Prettier
+      run: npm run format:js
+      
+    - name: Run stylelint and auto-fix
+      run: npm run lint:css || true
+      
+    - name: Run HTMLHint
+      run: npm run lint:html
+      continue-on-error: true
+      
+    - name: Check for changes
+      id: verify-changed-files
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Commit formatted changes
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "🤖 Auto-format code with Prettier and ESLint
+
+        - Formatted JavaScript/HTML with Prettier
+        - Applied ESLint auto-fixes
+        - Applied stylelint auto-fixes
+        
+        [skip ci]"
+        
+    - name: Push changes
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+        
+    - name: Run final quality check
+      run: npm run ci:check
+
+  # Summary job to provide overall status
+  ci-summary:
+    if: always()
+    needs: [pr-checks, feature-branch-ci]
+    name: CI Summary
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check overall result
+      run: |
+        if [[ "${{ needs.pr-checks.result }}" == "failure" || "${{ needs.feature-branch-ci.result }}" == "failure" ]]; then
+          echo "❌ CI failed - please check the logs above"
+          exit 1
+        elif [[ "${{ needs.pr-checks.result }}" == "success" || "${{ needs.feature-branch-ci.result }}" == "success" ]]; then
+          echo "✅ CI passed successfully"
+        else
+          echo "⚠️  CI was skipped (no relevant changes)"
+        fi

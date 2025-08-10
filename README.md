@@ -80,3 +80,51 @@ index.html
 この作品は「VibeCording（プロンプト駆動開発）」によるゲーム開発検証を目的として制作しました。  
 短期間で動作するゲームを実装しつつ、UI・物理挙動・衝突判定などの要素を組み込んでいます。  
 VibeCordingの詳細は割愛しますが、実装方針や仕様策定はプロンプトを通じて行っています。
+
+---
+
+## 🚀 開発・CI/CD
+
+### CI/CD パイプライン
+このプロジェクトでは GitHub Actions を使用した自動化されたコード品質チェックを導入しています。
+
+#### プルリクエスト時（develop → master, feature → develop）
+- **ESLint**: JavaScript/HTML コードの静的解析
+- **Prettier**: コードフォーマットのチェック（修正なし）
+- **stylelint**: CSS/HTML スタイルの検証
+- **HTMLHint**: HTML構文の検証
+
+#### フィーチャーブランチプッシュ時
+- 上記すべてのチェック実行
+- **Prettier**: コードの自動フォーマット
+- 変更があれば自動コミット・プッシュ
+
+### ローカル開発
+```bash
+# 依存関係のインストール
+npm install
+
+# コード品質チェック
+npm run lint          # 全てのlintチェック
+npm run lint:js       # ESLint
+npm run lint:css      # stylelint  
+npm run lint:html     # HTMLHint
+
+# コードフォーマット
+npm run format        # Prettierで自動整形
+npm run check:format  # フォーマットチェック（修正なし）
+
+# CI用コマンド
+npm run ci:check      # PR時と同じチェック
+npm run ci:format     # フィーチャーブランチ時と同じ処理
+```
+
+### ブランチ運用
+- `master`: 本番用ブランチ
+- `develop`: 開発用ブランチ
+- `feature/*`: 機能開発用ブランチ
+
+**推奨ワークフロー:**
+1. `feature/*` ブランチで開発（プッシュ時に自動フォーマット）
+2. `develop` ブランチへPR（品質チェックのみ）
+3. `master` ブランチへPR（品質チェックのみ）
