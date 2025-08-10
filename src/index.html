@@ -308,8 +308,8 @@
                         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
                     ],
                     start: { x: 200, y: 230 }, // S position (grid: 8,26) - converted to pixels
-                    goal:  { x: 125, y: 130 } // G position (grid: 4,1) - converted to pixels
-                },
+                    goal: { x: 125, y: 130 } // G position (grid: 4,1) - converted to pixels
+                }
             ];
 
             // ===== CRAZY BALLOON GAME CLASS =====
@@ -777,7 +777,7 @@
                     this.ctx.fillStyle = "#ffff00";
                     this.ctx.font = "24px monospace";
                     this.ctx.textAlign = "center";
-                    
+
                     // アニメーション効果（点滅）
                     const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
                     this.ctx.globalAlpha = pulse;
@@ -1001,7 +1001,7 @@
                         this.stageTimer += deltaTime;
                     } else if (this.gameState === "RESTART") {
                         this.restartTimer += deltaTime;
-                        
+
                         // 1.5秒後にPLAYING状態に戻る
                         if (this.restartTimer >= 1500) {
                             this.gameState = "PLAYING";
