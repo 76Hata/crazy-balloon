@@ -1,7 +1,7 @@
-import js from '@eslint/js';
-import html from 'eslint-plugin-html';
+const js = require('@eslint/js');
+const html = require('eslint-plugin-html');
 
-export default [
+module.exports = [
   js.configs.recommended,
   {
     files: ['src/**/*.html'],

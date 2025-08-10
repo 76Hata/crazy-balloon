@@ -4,20 +4,7 @@
     "stylelint-config-html"
   ],
   "rules": {
-    "indentation": 4,
-    "string-quotes": "single",
     "no-duplicate-selectors": true,
-    "color-hex-case": "lower",
-    "color-hex-length": "short",
-    "color-named": "never",
-    "selector-combinator-space-after": "always",
-    "selector-attribute-quotes": "always",
-    "selector-attribute-operator-space-before": "never",
-    "selector-attribute-operator-space-after": "never",
-    "selector-attribute-brackets-space-inside": "never",
-    "declaration-block-trailing-semicolon": "always",
-    "declaration-colon-space-before": "never",
-    "declaration-colon-space-after": "always",
     "property-no-unknown": true,
     "block-no-empty": true,
     "selector-pseudo-class-no-unknown": true,
@@ -26,8 +13,12 @@
     "media-feature-name-no-unknown": true,
     "at-rule-no-unknown": true,
     "comment-no-empty": true,
-    "max-nesting-depth": 4,
-    "selector-max-id": 2,
-    "selector-max-universal": 1
+    "max-nesting-depth": 6,
+    "selector-max-id": 5,
+    "selector-max-universal": 2,
+    "selector-id-pattern": null,
+    "value-no-vendor-prefix": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null
   }
 }
