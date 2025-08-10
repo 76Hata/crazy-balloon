@@ -43,7 +43,13 @@ jobs:
       run: npm run lint:js
       
     - name: Check Prettier formatting
-      run: npm run check:format
+      run: |
+        npx prettier --check "src/**/*.{js,html,css}" || {
+          echo "❌ Prettier formatting issues detected"
+          echo "Running Prettier to show differences:"
+          npx prettier --check "src/**/*.{js,html,css}" --list-different || true
+          exit 1
+        }
       
     - name: Run stylelint
       run: npm run lint:css

@@ -12,6 +12,7 @@
     "format:js": "prettier --write \"src/**/*.{js,html}\"",
     "format:css": "prettier --write \"src/**/*.{css,html}\"",
     "check:format": "prettier --check \"src/**/*.{js,html,css}\"",
+    "format:all": "prettier --write \"src/**/*.{js,html,css}\"",
     "ci:check": "npm run lint && npm run check:format",
     "ci:format": "npm run lint && npm run format"
   },
