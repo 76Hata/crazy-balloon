@@ -5,13 +5,14 @@
   "main": "src/index.html",
   "scripts": {
     "lint": "npm run lint:js && npm run lint:css && npm run lint:html",
-    "lint:js": "eslint --ext .js,.html src/",
+    "lint:js": "eslint --config eslint.config.cjs --ext .js,.html src/",
     "lint:css": "stylelint \"src/**/*.{html,css}\"",
     "lint:html": "htmlhint src/**/*.html",
     "format": "npm run format:js && npm run format:css",
     "format:js": "prettier --write \"src/**/*.{js,html}\"",
     "format:css": "prettier --write \"src/**/*.{css,html}\"",
     "check:format": "prettier --check \"src/**/*.{js,html,css}\"",
+    "format:all": "prettier --write \"src/**/*.{js,html,css}\"",
     "ci:check": "npm run lint && npm run check:format",
     "ci:format": "npm run lint && npm run format"
   },
