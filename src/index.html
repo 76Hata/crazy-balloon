@@ -611,7 +611,9 @@
                     p.y += p.vy * dt / 1000;
                     p.life -= dt / 1000;
                     
-                    if (p.life <= 0) {
+                    // Remove particles that are dead or have moved off-screen
+                    if (p.life <= 0 || p.x < -10 || p.x > this.canvas.width + 10 || 
+                        p.y < -10 || p.y > this.canvas.height + 10) {
                         this.particles.splice(i, 1);
                     }
                 }
@@ -638,7 +640,7 @@
             render() {
                 // Clear canvas with black background
                 this.ctx.fillStyle = '#000';
-                this.ctx.fillRect(0, 0, this.GAME_WIDTH, this.GAME_HEIGHT);
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 
                 if (this.gameState === 'TITLE') {
                     this.renderTitle();
