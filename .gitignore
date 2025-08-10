@@ -45,8 +45,10 @@ docs/
 # CI/CD artifacts
 chrome-extension.zip
 
-# ESLint cache
+# ESLint cache and old configs
 .eslintcache
+eslint.config.js
+eslint.config.mjs
 
 # Optional npm cache directory
 .npm
