@@ -4,12 +4,12 @@ on:
   # Pull requests to develop or master - run checks only
   pull_request:
     branches: [ develop, master ]
-    paths: [ 'src/**' ]
+    paths: [ '*.html', 'package.json', '.prettierrc.json', 'eslint.config.cjs', '.stylelintrc.json', '.htmlhintrc' ]
   
   # Push to feature branches (not develop/master) - run checks and auto-format
   push:
     branches-ignore: [ develop, master ]
-    paths: [ 'src/**' ]
+    paths: [ '*.html', 'package.json', '.prettierrc.json', 'eslint.config.cjs', '.stylelintrc.json', '.htmlhintrc' ]
 
 jobs:
   # Job for pull requests - check only (no auto-formatting)
@@ -44,10 +44,10 @@ jobs:
       
     - name: Check Prettier formatting
       run: |
-        npx prettier --check "src/**/*.{js,html,css}" || {
+        npx prettier --check "*.{js,html,css}" || {
           echo "❌ Prettier formatting issues detected"
           echo "Running Prettier to show differences:"
-          npx prettier --check "src/**/*.{js,html,css}" --list-different || true
+          npx prettier --check "*.{js,html,css}" --list-different || true
           exit 1
         }
       
