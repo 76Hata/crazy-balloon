@@ -38,11 +38,11 @@
             }
 
             #virtual-controls {
-                margin-top: 20px;
+                margin-top: 5px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                gap: 40px;
+                gap: 20px;
                 user-select: none;
             }
 
@@ -909,11 +909,21 @@
 
                 updateUIVisibility() {
                     const startButton = document.getElementById("btn-start");
+                    const analogStick = document.getElementById("analog-stick");
+
                     if (startButton) {
                         if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
                             startButton.style.display = "block";
                         } else {
                             startButton.style.display = "none";
+                        }
+                    }
+
+                    if (analogStick) {
+                        if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
+                            analogStick.style.display = "none";
+                        } else {
+                            analogStick.style.display = "flex";
                         }
                     }
                 }
