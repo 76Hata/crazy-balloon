@@ -46,76 +46,40 @@
                 user-select: none;
             }
 
-            #dpad {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-                grid-template-rows: 1fr 1fr 1fr;
-                gap: 2px;
+            #analog-stick {
+                position: relative;
                 width: 120px;
                 height: 120px;
-            }
-
-            .dpad-btn {
-                background: #333;
-                border: 2px solid #555;
-                border-radius: 8px;
-                color: #fff;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.1s ease;
+                border: 3px solid #555;
+                border-radius: 50%;
+                background: radial-gradient(circle at center, #222 30%, #333 70%, #444 100%);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                min-height: 36px;
-                min-width: 36px;
+                cursor: pointer;
                 user-select: none;
+                box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
             }
 
-            .dpad-btn:hover {
-                background: #444;
-                border-color: #666;
+            #stick-knob {
+                width: 40px;
+                height: 40px;
+                background: radial-gradient(circle at 30% 30%, #666, #444, #222);
+                border: 2px solid #777;
+                border-radius: 50%;
+                position: absolute;
+                transition: all 0.1s ease;
+                cursor: grab;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             }
 
-            .dpad-btn:active,
-            .dpad-btn.pressed {
-                background: #555;
-                border-color: #777;
+            #stick-knob:active {
+                cursor: grabbing;
                 transform: scale(0.95);
             }
 
-            #btn-up {
-                grid-column: 2;
-                grid-row: 1;
-            }
-
-            .dpad-middle {
-                grid-column: 1 / 4;
-                grid-row: 2;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-
-            #btn-left {
-                flex: 0 0 36px;
-            }
-
-            #btn-right {
-                flex: 0 0 36px;
-            }
-
-            .dpad-center {
-                width: 36px;
-                height: 36px;
-                background: #222;
-                border-radius: 50%;
-                margin: 0 2px;
-            }
-
-            #btn-down {
-                grid-column: 2;
-                grid-row: 3;
+            #stick-knob.dragging {
+                transition: none;
             }
 
             .start-btn {
@@ -164,16 +128,10 @@
                 <span id="lives">3</span>
             </div>
         </div>
-        <!-- 仮想方向キー -->
+        <!-- 仮想コントローラー -->
         <div id="virtual-controls">
-            <div id="dpad">
-                <button id="btn-up" class="dpad-btn" data-key="up">↑</button>
-                <div class="dpad-middle">
-                    <button id="btn-left" class="dpad-btn" data-key="left">←</button>
-                    <div class="dpad-center"></div>
-                    <button id="btn-right" class="dpad-btn" data-key="right">→</button>
-                </div>
-                <button id="btn-down" class="dpad-btn" data-key="down">↓</button>
+            <div id="analog-stick">
+                <div id="stick-knob"></div>
             </div>
             <button id="btn-start" class="start-btn">START</button>
         </div>
@@ -435,6 +393,7 @@
                     this.lastTime = 0;
                     this.fps = 60;
                     this.frameCount = 0;
+                    this.isNextStage = false; // ステージクリア時かどうかを判定
 
                     // Input system
                     this.keys = {};
@@ -466,6 +425,7 @@
 
                     this.initInput();
                     this.init();
+                    this.updateUIVisibility();
                 }
 
                 init() {
@@ -524,28 +484,8 @@
                 }
 
                 setupVirtualControls() {
-                    // 方向キーのイベント設定
-                    const dpadButtons = document.querySelectorAll(".dpad-btn");
-                    dpadButtons.forEach((button) => {
-                        const key = button.dataset.key;
-
-                        // マウス・タッチイベント
-                        ["mousedown", "touchstart"].forEach((eventType) => {
-                            button.addEventListener(eventType, (e) => {
-                                this.keys[key] = true;
-                                button.classList.add("pressed");
-                                e.preventDefault();
-                            });
-                        });
-
-                        ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach((eventType) => {
-                            button.addEventListener(eventType, (e) => {
-                                this.keys[key] = false;
-                                button.classList.remove("pressed");
-                                e.preventDefault();
-                            });
-                        });
-                    });
+                    // アナログスティックの設定
+                    this.setupAnalogStick();
 
                     // STARTボタンのイベント設定
                     const startButton = document.getElementById("btn-start");
@@ -566,7 +506,143 @@
                     });
                 }
 
+                setupAnalogStick() {
+                    const stick = document.getElementById("analog-stick");
+                    const knob = document.getElementById("stick-knob");
+
+                    if (!stick || !knob) return;
+
+                    const stickRect = stick.getBoundingClientRect();
+                    const stickCenterX = stickRect.width / 2;
+                    const stickCenterY = stickRect.height / 2;
+                    const maxDistance = (stickRect.width - 40) / 2; // 40 = knob width
+
+                    let isDragging = false;
+                    let currentX = 0;
+                    let currentY = 0;
+
+                    const getEventPos = (e) => {
+                        const rect = stick.getBoundingClientRect();
+                        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                        return {
+                            x: clientX - rect.left - stickCenterX,
+                            y: clientY - rect.top - stickCenterY
+                        };
+                    };
+
+                    const updateKnobPosition = (x, y) => {
+                        const distance = Math.sqrt(x * x + y * y);
+
+                        if (distance > maxDistance) {
+                            const angle = Math.atan2(y, x);
+                            x = Math.cos(angle) * maxDistance;
+                            y = Math.sin(angle) * maxDistance;
+                        }
+
+                        currentX = x;
+                        currentY = y;
+
+                        knob.style.transform = `translate(${x}px, ${y}px)`;
+
+                        // 正規化された方向ベクトルを計算
+                        const normalizedX = distance > 0 ? x / maxDistance : 0;
+                        const normalizedY = distance > 0 ? y / maxDistance : 0;
+
+                        this.updateInputFromStick(normalizedX, normalizedY);
+                    };
+
+                    const resetKnob = () => {
+                        currentX = 0;
+                        currentY = 0;
+                        knob.style.transform = "translate(0px, 0px)";
+                        this.updateInputFromStick(0, 0);
+                    };
+
+                    // マウスイベント
+                    knob.addEventListener("mousedown", (e) => {
+                        isDragging = true;
+                        knob.classList.add("dragging");
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener("mousemove", (e) => {
+                        if (!isDragging) return;
+
+                        const pos = getEventPos(e);
+                        updateKnobPosition(pos.x, pos.y);
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener("mouseup", () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            knob.classList.remove("dragging");
+                            resetKnob();
+                        }
+                    });
+
+                    // タッチイベント
+                    knob.addEventListener("touchstart", (e) => {
+                        isDragging = true;
+                        knob.classList.add("dragging");
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener(
+                        "touchmove",
+                        (e) => {
+                            if (!isDragging) return;
+
+                            const pos = getEventPos(e);
+                            updateKnobPosition(pos.x, pos.y);
+                            e.preventDefault();
+                        },
+                        { passive: false }
+                    );
+
+                    document.addEventListener("touchend", () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            knob.classList.remove("dragging");
+                            resetKnob();
+                        }
+                    });
+
+                    document.addEventListener("touchcancel", () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            knob.classList.remove("dragging");
+                            resetKnob();
+                        }
+                    });
+                }
+
+                updateInputFromStick(x, y) {
+                    // アナログスティックからの入力をキー入力形式に変換
+                    const deadZone = 0.1; // デッドゾーン
+
+                    if (Math.abs(x) < deadZone) x = 0;
+                    if (Math.abs(y) < deadZone) y = 0;
+
+                    // 直接 inputVector を更新
+                    this.inputVector.x = x;
+                    this.inputVector.y = y;
+
+                    // 互換性のためキー状態も更新（必要に応じて）
+                    this.keys.left = x < -deadZone;
+                    this.keys.right = x > deadZone;
+                    this.keys.up = y < -deadZone;
+                    this.keys.down = y > deadZone;
+                }
+
                 updateInput() {
+                    // アナログスティックが使用されている場合はキーボード入力を無効化
+                    if (this.inputVector.x !== 0 || this.inputVector.y !== 0) {
+                        // アナログスティックからの入力が既に設定されているので何もしない
+                        return;
+                    }
+
                     let x = 0,
                         y = 0;
 
@@ -707,13 +783,15 @@
 
                     if (this.lives <= 0) {
                         this.gameState = "GAME_OVER";
+                        this.updateUIVisibility();
                         console.log("Game Over triggered");
                     } else {
                         // リスタート時はプレイヤーを初期位置に戻してRESTART状態に遷移
                         this.resetPlayer();
                         this.gameState = "RESTART";
                         this.restartTimer = 0;
-                        console.log("Restarting stage - showing START message");
+                        this.isNextStage = false; // ミス時のリスタート
+                        console.log("Restarting stage - showing RESTART message");
                     }
                 }
 
@@ -826,6 +904,18 @@
                     this.loadStageData();
                     this.resetPlayer();
                     this.gameState = "PLAYING";
+                    this.updateUIVisibility();
+                }
+
+                updateUIVisibility() {
+                    const startButton = document.getElementById("btn-start");
+                    if (startButton) {
+                        if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
+                            startButton.style.display = "block";
+                        } else {
+                            startButton.style.display = "none";
+                        }
+                    }
                 }
 
                 render() {
@@ -916,21 +1006,32 @@
                     this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-                    // START！メッセージ
-                    this.ctx.fillStyle = "#ffff00";
-                    this.ctx.font = "24px monospace";
+                    // メッセージ（ステージクリア時とミス時で異なる）
+                    this.ctx.fillStyle = this.isNextStage ? "#00ff00" : "#ffff00";
+                    this.ctx.font = "20px monospace";
                     this.ctx.textAlign = "center";
 
                     // アニメーション効果（点滅）
                     const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
                     this.ctx.globalAlpha = pulse;
-                    this.ctx.fillText("RESTART!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
+
+                    if (this.isNextStage) {
+                        this.ctx.fillText("NEXT STAGE!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
+                    } else {
+                        this.ctx.fillText("RESTART!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
+                    }
+
                     this.ctx.globalAlpha = 1.0;
 
                     // ライフ表示
                     this.ctx.fillStyle = "#fff";
                     this.ctx.font = "12px monospace";
                     this.ctx.fillText(`LIVES: ${this.lives}`, this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2 + 30);
+
+                    // ステージ情報も表示
+                    if (this.isNextStage) {
+                        this.ctx.fillText(`STAGE ${this.stage}`, this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2 - 30);
+                    }
                 }
 
                 renderGame() {
@@ -1157,14 +1258,18 @@
                                     console.log("Loading next stage...");
                                     this.loadStageData();
                                     this.resetPlayer();
-                                    this.gameState = "PLAYING";
+                                    this.gameState = "RESTART";
+                                    this.restartTimer = 0;
+                                    this.isNextStage = true; // 次ステージへの遷移
                                 } else {
                                     // All stages completed - cycle back to stage 1
                                     console.log("All stages completed, cycling back to stage 1");
                                     this.stage = 1;
                                     this.loadStageData();
                                     this.resetPlayer();
-                                    this.gameState = "PLAYING";
+                                    this.gameState = "RESTART";
+                                    this.restartTimer = 0;
+                                    this.isNextStage = true; // 次ステージへの遷移
                                 }
                                 console.log(`New state: ${this.gameState}, Lives: ${this.lives}`);
                             }
@@ -1185,6 +1290,9 @@
                             this.onBalloonHit();
                         }
                     }
+
+                    // Reset input vector for next frame (will be set by analog stick if needed)
+                    this.inputVector = { x: 0, y: 0 };
 
                     // Always update particles for effects
                     this.updateParticles(deltaTime);
