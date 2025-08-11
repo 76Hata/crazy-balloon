@@ -433,24 +433,36 @@
 
                 preventScrolling() {
                     // スクロール抑制
-                    document.addEventListener('touchmove', (e) => {
-                        // アナログスティック内での操作は除外
-                        const target = e.target;
-                        if (!target.closest('#analog-stick')) {
-                            e.preventDefault();
-                        }
-                    }, { passive: false });
+                    document.addEventListener(
+                        "touchmove",
+                        (e) => {
+                            // アナログスティック内での操作は除外
+                            const target = e.target;
+                            if (!target.closest("#analog-stick")) {
+                                e.preventDefault();
+                            }
+                        },
+                        { passive: false }
+                    );
 
-                    document.addEventListener('wheel', (e) => {
-                        e.preventDefault();
-                    }, { passive: false });
+                    document.addEventListener(
+                        "wheel",
+                        (e) => {
+                            e.preventDefault();
+                        },
+                        { passive: false }
+                    );
 
                     // iOS Safariでのオーバースクロール（バウンス）を抑制
-                    document.addEventListener('touchstart', (e) => {
-                        if (e.touches.length > 1) {
-                            e.preventDefault();
-                        }
-                    }, { passive: false });
+                    document.addEventListener(
+                        "touchstart",
+                        (e) => {
+                            if (e.touches.length > 1) {
+                                e.preventDefault();
+                            }
+                        },
+                        { passive: false }
+                    );
                 }
 
                 init() {
