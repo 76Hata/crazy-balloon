@@ -2,7 +2,10 @@
 <html lang="ja">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <title>Crazy Balloon - クレイジーバルーン</title>
         <style>
             body {
@@ -14,8 +17,10 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start;
                 min-height: 100vh;
+                padding-top: 10px;
+                overflow-x: hidden;
             }
 
             #gameCanvas {
@@ -32,11 +37,110 @@
                 font-size: 14px;
             }
 
-            .controls {
-                margin-top: 10px;
-                text-align: center;
-                font-size: 12px;
-                color: #888;
+            #virtual-controls {
+                margin-top: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 40px;
+                user-select: none;
+            }
+
+            #dpad {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-rows: 1fr 1fr 1fr;
+                gap: 2px;
+                width: 120px;
+                height: 120px;
+            }
+
+            .dpad-btn {
+                background: #333;
+                border: 2px solid #555;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.1s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 36px;
+                min-width: 36px;
+                user-select: none;
+            }
+
+            .dpad-btn:hover {
+                background: #444;
+                border-color: #666;
+            }
+
+            .dpad-btn:active,
+            .dpad-btn.pressed {
+                background: #555;
+                border-color: #777;
+                transform: scale(0.95);
+            }
+
+            #btn-up {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            .dpad-middle {
+                grid-column: 1 / 4;
+                grid-row: 2;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            #btn-left {
+                flex: 0 0 36px;
+            }
+
+            #btn-right {
+                flex: 0 0 36px;
+            }
+
+            .dpad-center {
+                width: 36px;
+                height: 36px;
+                background: #222;
+                border-radius: 50%;
+                margin: 0 2px;
+            }
+
+            #btn-down {
+                grid-column: 2;
+                grid-row: 3;
+            }
+
+            .start-btn {
+                background: #0a7c0a;
+                border: 2px solid #0d8f0d;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 12px 24px;
+                cursor: pointer;
+                transition: all 0.1s ease;
+                user-select: none;
+            }
+
+            .start-btn:hover {
+                background: #0d8f0d;
+                border-color: #10a010;
+            }
+
+            .start-btn:active,
+            .start-btn.pressed {
+                background: #10a010;
+                border-color: #13b013;
+                transform: scale(0.95);
             }
 
             .debug {
@@ -70,14 +174,18 @@
                 <span id="lives">3</span>
             </div>
         </div>
-        <div class="controls">
-            Use Arrow Keys or WASD to control the red balloon
-            <br />
-            Moving expands the balloon, staying still shrinks it
-            <br />
-            Avoid touching the blue dots - Navigate to the green GOAL
-            <br />
-            Press SPACE to start
+        <!-- 仮想方向キー -->
+        <div id="virtual-controls">
+            <div id="dpad">
+                <button id="btn-up" class="dpad-btn" data-key="up">↑</button>
+                <div class="dpad-middle">
+                    <button id="btn-left" class="dpad-btn" data-key="left">←</button>
+                    <div class="dpad-center"></div>
+                    <button id="btn-right" class="dpad-btn" data-key="right">→</button>
+                </div>
+                <button id="btn-down" class="dpad-btn" data-key="down">↓</button>
+            </div>
+            <button id="btn-start" class="start-btn">START</button>
         </div>
 
         <div class="debug" id="debug">
@@ -404,6 +512,7 @@
                         Space: "start"
                     };
 
+                    // キーボードイベント
                     document.addEventListener("keydown", (e) => {
                         const key = keyMap[e.code];
                         if (key) {
@@ -418,6 +527,63 @@
                             this.keys[key] = false;
                             e.preventDefault();
                         }
+                    });
+
+                    // 仮想コントローラーのイベント
+                    this.setupVirtualControls();
+
+                    // ゲーム画面のタップでスタート（スペースキー代替）
+                    document.getElementById("gameCanvas").addEventListener("click", (e) => {
+                        if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
+                            this.keys.start = true;
+                            setTimeout(() => {
+                                this.keys.start = false;
+                            }, 100);
+                        }
+                        e.preventDefault();
+                    });
+                }
+
+                setupVirtualControls() {
+                    // 方向キーのイベント設定
+                    const dpadButtons = document.querySelectorAll(".dpad-btn");
+                    dpadButtons.forEach((button) => {
+                        const key = button.dataset.key;
+
+                        // マウス・タッチイベント
+                        ["mousedown", "touchstart"].forEach((eventType) => {
+                            button.addEventListener(eventType, (e) => {
+                                this.keys[key] = true;
+                                button.classList.add("pressed");
+                                e.preventDefault();
+                            });
+                        });
+
+                        ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach((eventType) => {
+                            button.addEventListener(eventType, (e) => {
+                                this.keys[key] = false;
+                                button.classList.remove("pressed");
+                                e.preventDefault();
+                            });
+                        });
+                    });
+
+                    // STARTボタンのイベント設定
+                    const startButton = document.getElementById("btn-start");
+                    ["mousedown", "touchstart"].forEach((eventType) => {
+                        startButton.addEventListener(eventType, (e) => {
+                            this.keys.start = true;
+                            startButton.classList.add("pressed");
+                            e.preventDefault();
+                        });
+                    });
+
+                    ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach((eventType) => {
+                        startButton.addEventListener(eventType, (e) => {
+                            this.keys.start = false;
+                            startButton.classList.remove("pressed");
+                            e.preventDefault();
+                        });
                     });
                 }
 
