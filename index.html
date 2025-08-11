@@ -58,7 +58,7 @@
                 justify-content: center;
                 cursor: pointer;
                 user-select: none;
-                box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+                box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
             }
 
             #stick-knob {
@@ -70,7 +70,7 @@
                 position: absolute;
                 transition: all 0.1s ease;
                 cursor: grab;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             }
 
             #stick-knob:active {
@@ -509,7 +509,7 @@
                 setupAnalogStick() {
                     const stick = document.getElementById("analog-stick");
                     const knob = document.getElementById("stick-knob");
-                    
+
                     if (!stick || !knob) return;
 
                     const stickRect = stick.getBoundingClientRect();
@@ -533,7 +533,7 @@
 
                     const updateKnobPosition = (x, y) => {
                         const distance = Math.sqrt(x * x + y * y);
-                        
+
                         if (distance > maxDistance) {
                             const angle = Math.atan2(y, x);
                             x = Math.cos(angle) * maxDistance;
@@ -544,71 +544,75 @@
                         currentY = y;
 
                         knob.style.transform = `translate(${x}px, ${y}px)`;
-                        
+
                         // 正規化された方向ベクトルを計算
                         const normalizedX = distance > 0 ? x / maxDistance : 0;
                         const normalizedY = distance > 0 ? y / maxDistance : 0;
-                        
+
                         this.updateInputFromStick(normalizedX, normalizedY);
                     };
 
                     const resetKnob = () => {
                         currentX = 0;
                         currentY = 0;
-                        knob.style.transform = 'translate(0px, 0px)';
+                        knob.style.transform = "translate(0px, 0px)";
                         this.updateInputFromStick(0, 0);
                     };
 
                     // マウスイベント
-                    knob.addEventListener('mousedown', (e) => {
+                    knob.addEventListener("mousedown", (e) => {
                         isDragging = true;
-                        knob.classList.add('dragging');
+                        knob.classList.add("dragging");
                         e.preventDefault();
                     });
 
-                    document.addEventListener('mousemove', (e) => {
+                    document.addEventListener("mousemove", (e) => {
                         if (!isDragging) return;
-                        
+
                         const pos = getEventPos(e);
                         updateKnobPosition(pos.x, pos.y);
                         e.preventDefault();
                     });
 
-                    document.addEventListener('mouseup', () => {
+                    document.addEventListener("mouseup", () => {
                         if (isDragging) {
                             isDragging = false;
-                            knob.classList.remove('dragging');
+                            knob.classList.remove("dragging");
                             resetKnob();
                         }
                     });
 
                     // タッチイベント
-                    knob.addEventListener('touchstart', (e) => {
+                    knob.addEventListener("touchstart", (e) => {
                         isDragging = true;
-                        knob.classList.add('dragging');
+                        knob.classList.add("dragging");
                         e.preventDefault();
                     });
 
-                    document.addEventListener('touchmove', (e) => {
-                        if (!isDragging) return;
-                        
-                        const pos = getEventPos(e);
-                        updateKnobPosition(pos.x, pos.y);
-                        e.preventDefault();
-                    }, { passive: false });
+                    document.addEventListener(
+                        "touchmove",
+                        (e) => {
+                            if (!isDragging) return;
 
-                    document.addEventListener('touchend', () => {
+                            const pos = getEventPos(e);
+                            updateKnobPosition(pos.x, pos.y);
+                            e.preventDefault();
+                        },
+                        { passive: false }
+                    );
+
+                    document.addEventListener("touchend", () => {
                         if (isDragging) {
                             isDragging = false;
-                            knob.classList.remove('dragging');
+                            knob.classList.remove("dragging");
                             resetKnob();
                         }
                     });
 
-                    document.addEventListener('touchcancel', () => {
+                    document.addEventListener("touchcancel", () => {
                         if (isDragging) {
                             isDragging = false;
-                            knob.classList.remove('dragging');
+                            knob.classList.remove("dragging");
                             resetKnob();
                         }
                     });
@@ -617,14 +621,14 @@
                 updateInputFromStick(x, y) {
                     // アナログスティックからの入力をキー入力形式に変換
                     const deadZone = 0.1; // デッドゾーン
-                    
+
                     if (Math.abs(x) < deadZone) x = 0;
                     if (Math.abs(y) < deadZone) y = 0;
-                    
+
                     // 直接 inputVector を更新
                     this.inputVector.x = x;
                     this.inputVector.y = y;
-                    
+
                     // 互換性のためキー状態も更新（必要に応じて）
                     this.keys.left = x < -deadZone;
                     this.keys.right = x > deadZone;
@@ -1020,20 +1024,20 @@
                     // アニメーション効果（点滅）
                     const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
                     this.ctx.globalAlpha = pulse;
-                    
+
                     if (this.isNextStage) {
                         this.ctx.fillText("NEXT STAGE!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
                     } else {
                         this.ctx.fillText("RESTART!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
                     }
-                    
+
                     this.ctx.globalAlpha = 1.0;
 
                     // ライフ表示
                     this.ctx.fillStyle = "#fff";
                     this.ctx.font = "12px monospace";
                     this.ctx.fillText(`LIVES: ${this.lives}`, this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2 + 30);
-                    
+
                     // ステージ情報も表示
                     if (this.isNextStage) {
                         this.ctx.fillText(`STAGE ${this.stage}`, this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2 - 30);
