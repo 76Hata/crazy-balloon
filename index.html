@@ -901,7 +901,9 @@
                             x: this.currentStage.start.x,
                             y: this.currentStage.start.y
                         };
-                        console.log(`Player reset to stage ${this.stage} start position: ${this.player.pos.x}, ${this.player.pos.y}`);
+                        console.log(
+                            `Player reset to stage ${this.stage} start position: ${this.player.pos.x}, ${this.player.pos.y}`
+                        );
                     } else {
                         this.player.pos = { x: 32, y: 200 };
                         console.log("WARNING: No currentStage found, using default position");
@@ -935,7 +937,9 @@
                         goal: stageData.goal
                     };
 
-                    console.log(`Stage loaded: ${this.currentStage.start.x}, ${this.currentStage.start.y} -> ${this.currentStage.goal.x}, ${this.currentStage.goal.y}`);
+                    console.log(
+                        `Stage loaded: ${this.currentStage.start.x}, ${this.currentStage.start.y} -> ${this.currentStage.goal.x}, ${this.currentStage.goal.y}`
+                    );
                     console.log(`Grid dimensions: ${this.mazeData.length}x${this.mazeData[0]?.length}`);
                 }
 
@@ -1157,7 +1161,9 @@
 
                     // Debug: Log maze data info every few frames (avoid spam)
                     if (this.timer % 3000 < 50) {
-                        console.log(`Rendering maze for stage ${this.stage}, maze size: ${this.mazeData.length}x${this.mazeData[0]?.length}`);
+                        console.log(
+                            `Rendering maze for stage ${this.stage}, maze size: ${this.mazeData.length}x${this.mazeData[0]?.length}`
+                        );
                         // Log first few rows for comparison
                         console.log("First row:", this.mazeData[0]?.slice(0, 10));
                         console.log("Second row:", this.mazeData[1]?.slice(0, 10));
@@ -1390,10 +1396,16 @@
                             } else {
                                 // Check if we have more stages
                                 if (this.stage <= STAGES.length) {
-                                    console.log(`Loading next stage... Current stage: ${this.stage}, STAGES.length: ${STAGES.length}`);
-                                    console.log(`Before loadStageData: mazeData size: ${this.mazeData?.length || 'undefined'}`);
+                                    console.log(
+                                        `Loading next stage... Current stage: ${this.stage}, STAGES.length: ${STAGES.length}`
+                                    );
+                                    console.log(
+                                        `Before loadStageData: mazeData size: ${this.mazeData?.length || "undefined"}`
+                                    );
                                     this.loadStageData();
-                                    console.log(`After loadStageData: mazeData size: ${this.mazeData?.length || 'undefined'}, first row size: ${this.mazeData?.[0]?.length || 'undefined'}`);
+                                    console.log(
+                                        `After loadStageData: mazeData size: ${this.mazeData?.length || "undefined"}, first row size: ${this.mazeData?.[0]?.length || "undefined"}`
+                                    );
                                     this.resetPlayer();
                                     this.resetStageTimer();
                                     this.gameState = "RESTART";
