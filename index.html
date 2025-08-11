@@ -910,7 +910,7 @@
                 updateUIVisibility() {
                     const startButton = document.getElementById("btn-start");
                     const analogStick = document.getElementById("analog-stick");
-                    
+
                     if (startButton) {
                         if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
                             startButton.style.display = "block";
@@ -918,7 +918,7 @@
                             startButton.style.display = "none";
                         }
                     }
-                    
+
                     if (analogStick) {
                         if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
                             analogStick.style.display = "none";
