@@ -4,7 +4,7 @@ const html = require('eslint-plugin-html');
 module.exports = [
   js.configs.recommended,
   {
-    files: ['src/**/*.html'],
+    files: ['*.html'],
     plugins: {
       html: html
     },
@@ -51,7 +51,7 @@ module.exports = [
     }
   },
   {
-    files: ['src/**/*.js'],
+    files: ['*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module'
