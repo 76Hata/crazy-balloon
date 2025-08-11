@@ -1096,7 +1096,7 @@
                     // メッセージ（ステージクリア時・タイムアップ時・ミス時で異なる）
                     let messageColor = "#ffff00";
                     let messageText = "RESTART!";
-                    
+
                     if (this.isNextStage) {
                         messageColor = "#00ff00";
                         messageText = "NEXT STAGE!";
@@ -1104,7 +1104,7 @@
                         messageColor = "#ff0000";
                         messageText = "TIME UP!";
                     }
-                    
+
                     this.ctx.fillStyle = messageColor;
                     this.ctx.font = "20px monospace";
                     this.ctx.textAlign = "center";
@@ -1303,7 +1303,7 @@
                     // Timer display
                     const seconds = Math.ceil(this.remainingTime / 1000);
                     const displayTime = Math.max(0, seconds);
-                    
+
                     // 時間が少なくなったら色を変える
                     if (displayTime <= 10) {
                         this.ctx.fillStyle = "#ff0000"; // 赤色
@@ -1312,7 +1312,7 @@
                     } else {
                         this.ctx.fillStyle = "#fff"; // 白色
                     }
-                    
+
                     this.ctx.fillText("TIME", this.GAME_WIDTH + 50, 125);
                     this.ctx.fillText(displayTime.toString(), this.GAME_WIDTH + 50, 140);
 
