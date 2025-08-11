@@ -379,7 +379,8 @@
                         BALLOON_EXPAND_RATE: 8, // pixels per second
                         SPEED: 32,
                         DOT_SIZE: 2,
-                        EXTEND_SCORE: 10000
+                        EXTEND_SCORE: 10000,
+                        STAGE_TIME_LIMIT: 300000 // 5分 (ミリ秒)
                     };
 
                     // Game state
@@ -392,10 +393,13 @@
                     this.stageTimer = 0;
                     this.stageClearTimer = 0;
                     this.restartTimer = 0;
+                    this.timeUpTimer = 0;
+                    this.remainingTime = this.params.STAGE_TIME_LIMIT;
                     this.lastTime = 0;
                     this.fps = 60;
                     this.frameCount = 0;
                     this.isNextStage = false; // ステージクリア時かどうかを判定
+                    this.isTimeUp = false; // タイムアップ時かどうかを判定
 
                     // Input system
                     this.keys = {};
@@ -825,10 +829,34 @@
                     } else {
                         // リスタート時はプレイヤーを初期位置に戻してRESTART状態に遷移
                         this.resetPlayer();
+                        this.resetStageTimer();
                         this.gameState = "RESTART";
                         this.restartTimer = 0;
                         this.isNextStage = false; // ミス時のリスタート
+                        this.isTimeUp = false;
                         console.log("Restarting stage - showing RESTART message");
+                    }
+                }
+
+                onTimeUp() {
+                    console.log("Time up!");
+
+                    this.lives--;
+                    console.log(`Lives after time up: ${this.lives}`);
+
+                    if (this.lives <= 0) {
+                        this.gameState = "GAME_OVER";
+                        this.updateUIVisibility();
+                        console.log("Game Over triggered by time up");
+                    } else {
+                        // タイムアップ時はプレイヤーを初期位置に戻してRESTART状態に遷移
+                        this.resetPlayer();
+                        this.resetStageTimer();
+                        this.gameState = "RESTART";
+                        this.restartTimer = 0;
+                        this.isNextStage = false;
+                        this.isTimeUp = true; // タイムアップ時のリスタート
+                        console.log("Time up restart - showing TIME UP message");
                     }
                 }
 
@@ -837,6 +865,10 @@
                     this.score += 1000;
                     this.stage++;
                     this.stageTimer = 0;
+
+                    // ステージクリア時に自機を1機増やす
+                    this.lives++;
+                    console.log(`Stage cleared bonus: Lives increased to ${this.lives}`);
 
                     // Check for extend
                     if (
@@ -938,10 +970,18 @@
                     this.stage = 1;
                     this.timer = 0;
                     this.stageTimer = 0;
+                    this.remainingTime = this.params.STAGE_TIME_LIMIT;
                     this.loadStageData();
                     this.resetPlayer();
                     this.gameState = "PLAYING";
                     this.updateUIVisibility();
+                }
+
+                resetStageTimer() {
+                    this.remainingTime = this.params.STAGE_TIME_LIMIT;
+                    this.stageTimer = 0;
+                    const seconds = this.params.STAGE_TIME_LIMIT / 1000;
+                    console.log(`Stage timer reset - ${seconds} seconds remaining`);
                 }
 
                 updateUIVisibility() {
@@ -1053,20 +1093,26 @@
                     this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-                    // メッセージ（ステージクリア時とミス時で異なる）
-                    this.ctx.fillStyle = this.isNextStage ? "#00ff00" : "#ffff00";
+                    // メッセージ（ステージクリア時・タイムアップ時・ミス時で異なる）
+                    let messageColor = "#ffff00";
+                    let messageText = "RESTART!";
+                    
+                    if (this.isNextStage) {
+                        messageColor = "#00ff00";
+                        messageText = "NEXT STAGE!";
+                    } else if (this.isTimeUp) {
+                        messageColor = "#ff0000";
+                        messageText = "TIME UP!";
+                    }
+                    
+                    this.ctx.fillStyle = messageColor;
                     this.ctx.font = "20px monospace";
                     this.ctx.textAlign = "center";
 
                     // アニメーション効果（点滅）
                     const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
                     this.ctx.globalAlpha = pulse;
-
-                    if (this.isNextStage) {
-                        this.ctx.fillText("NEXT STAGE!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
-                    } else {
-                        this.ctx.fillText("RESTART!", this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
-                    }
+                    this.ctx.fillText(messageText, this.GAME_WIDTH / 2, this.GAME_HEIGHT / 2);
 
                     this.ctx.globalAlpha = 1.0;
 
@@ -1254,13 +1300,45 @@
                     this.ctx.fillText("STAGE", this.GAME_WIDTH + 50, 90);
                     this.ctx.fillText(this.stage.toString(), this.GAME_WIDTH + 50, 105);
 
+                    // Timer display
+                    const seconds = Math.ceil(this.remainingTime / 1000);
+                    const displayTime = Math.max(0, seconds);
+                    
+                    // 時間が少なくなったら色を変える
+                    if (displayTime <= 10) {
+                        this.ctx.fillStyle = "#ff0000"; // 赤色
+                    } else if (displayTime <= 20) {
+                        this.ctx.fillStyle = "#ffaa00"; // オレンジ色
+                    } else {
+                        this.ctx.fillStyle = "#fff"; // 白色
+                    }
+                    
+                    this.ctx.fillText("TIME", this.GAME_WIDTH + 50, 125);
+                    this.ctx.fillText(displayTime.toString(), this.GAME_WIDTH + 50, 140);
+
                     // Lives display (as small balloons)
                     for (let i = 0; i < this.lives; i++) {
                         this.ctx.fillStyle = "#ff4444";
                         this.ctx.beginPath();
-                        this.ctx.arc(this.GAME_WIDTH + 20 + i * 8, 125, 3, 0, Math.PI * 2);
+                        this.ctx.arc(this.GAME_WIDTH + 20 + i * 8, 155, 3, 0, Math.PI * 2);
                         this.ctx.fill();
                     }
+
+                    // Update HTML UI elements
+                    this.updateHTMLUI();
+                }
+
+                updateHTMLUI() {
+                    // Update score, stage, and lives in HTML UI
+                    const scoreElement = document.getElementById("score");
+                    const hiScoreElement = document.getElementById("hiscore");
+                    const stageElement = document.getElementById("stage");
+                    const livesElement = document.getElementById("lives");
+
+                    if (scoreElement) scoreElement.textContent = this.score.toString();
+                    if (hiScoreElement) hiScoreElement.textContent = this.hiScore.toString();
+                    if (stageElement) stageElement.textContent = this.stage.toString();
+                    if (livesElement) livesElement.textContent = this.lives.toString();
                 }
 
                 gameLoop() {
@@ -1305,18 +1383,22 @@
                                     console.log("Loading next stage...");
                                     this.loadStageData();
                                     this.resetPlayer();
+                                    this.resetStageTimer();
                                     this.gameState = "RESTART";
                                     this.restartTimer = 0;
                                     this.isNextStage = true; // 次ステージへの遷移
+                                    this.isTimeUp = false;
                                 } else {
                                     // All stages completed - cycle back to stage 1
                                     console.log("All stages completed, cycling back to stage 1");
                                     this.stage = 1;
                                     this.loadStageData();
                                     this.resetPlayer();
+                                    this.resetStageTimer();
                                     this.gameState = "RESTART";
                                     this.restartTimer = 0;
                                     this.isNextStage = true; // 次ステージへの遷移
+                                    this.isTimeUp = false;
                                 }
                                 console.log(`New state: ${this.gameState}, Lives: ${this.lives}`);
                             }
@@ -1330,6 +1412,13 @@
                     // Only update game objects during PLAYING state
                     if (this.gameState === "PLAYING") {
                         this.updatePlayer(deltaTime);
+
+                        // Update timer
+                        this.remainingTime -= deltaTime;
+                        if (this.remainingTime <= 0) {
+                            this.remainingTime = 0;
+                            this.onTimeUp();
+                        }
 
                         // Check balloon collision after movement
                         if (this.checkBalloonCollision()) {
