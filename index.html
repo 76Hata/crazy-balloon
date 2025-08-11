@@ -142,16 +142,6 @@
                 border-color: #13b013;
                 transform: scale(0.95);
             }
-
-            .debug {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                font-size: 10px;
-                color: #888;
-                background: rgba(0, 0, 0, 0.5);
-                padding: 5px;
-            }
         </style>
     </head>
     <body>
@@ -186,17 +176,6 @@
                 <button id="btn-down" class="dpad-btn" data-key="down">↓</button>
             </div>
             <button id="btn-start" class="start-btn">START</button>
-        </div>
-
-        <div class="debug" id="debug">
-            FPS:
-            <span id="fps">60</span>
-            <br />
-            State:
-            <span id="gameState">TITLE</span>
-            <br />
-            Player:
-            <span id="playerPos">0,0</span>
         </div>
 
         <script>
@@ -867,8 +846,6 @@
                     } else if (this.gameState === "GAME_OVER") {
                         this.renderGameOver();
                     }
-
-                    this.renderDebug();
                 }
 
                 renderTitle() {
@@ -1136,18 +1113,6 @@
                         this.ctx.arc(this.GAME_WIDTH + 20 + i * 8, 125, 3, 0, Math.PI * 2);
                         this.ctx.fill();
                     }
-                }
-
-                renderDebug() {
-                    // Update debug info
-                    document.getElementById("score").textContent = this.score;
-                    document.getElementById("hiscore").textContent = this.hiScore;
-                    document.getElementById("stage").textContent = this.stage;
-                    document.getElementById("lives").textContent = this.lives;
-                    document.getElementById("fps").textContent = Math.round(this.fps);
-                    document.getElementById("gameState").textContent = this.gameState;
-                    document.getElementById("playerPos").textContent =
-                        `Player:${Math.round(this.player.pos.x)},${Math.round(this.player.pos.y)} Balloon:${Math.round(this.balloon.pos.x)},${Math.round(this.balloon.pos.y)} R:${Math.round(this.balloon.radius)}`;
                 }
 
                 gameLoop() {
