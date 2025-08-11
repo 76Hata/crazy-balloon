@@ -20,7 +20,14 @@
                 justify-content: flex-start;
                 min-height: 100vh;
                 padding-top: 10px;
-                overflow-x: hidden;
+                overflow: hidden;
+                touch-action: none;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
 
             #gameCanvas {
@@ -424,8 +431,31 @@
                     this.particles = [];
 
                     this.initInput();
+                    this.preventScrolling();
                     this.init();
                     this.updateUIVisibility();
+                }
+
+                preventScrolling() {
+                    // スクロール抑制
+                    document.addEventListener('touchmove', (e) => {
+                        // アナログスティック内での操作は除外
+                        const target = e.target;
+                        if (!target.closest('#analog-stick')) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+
+                    document.addEventListener('wheel', (e) => {
+                        e.preventDefault();
+                    }, { passive: false });
+
+                    // iOS Safariでのオーバースクロール（バウンス）を抑制
+                    document.addEventListener('touchstart', (e) => {
+                        if (e.touches.length > 1) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
                 }
 
                 init() {
