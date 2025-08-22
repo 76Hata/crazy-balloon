@@ -799,7 +799,7 @@
 
                     // ゲーム画面のタップでスタート（スペースキー代替）
                     document.getElementById("gameCanvas").addEventListener("click", (e) => {
-                        if (this.gameState === "TITLE" || this.gameState === "GAME_OVER") {
+                        if (this.stateManager.canStartGame()) {
                             this.keys.start = true;
                             setTimeout(() => {
                                 this.keys.start = false;
@@ -1721,12 +1721,12 @@
                                     this.loadStageData();
                                     this.resetPlayer();
                                     this.resetStageTimer();
-                                    this.gameState = "RESTART";
+                                    this.stateManager.setState("RESTART");
                                     this.restartTimer = 0;
                                     this.isNextStage = true; // 次ステージへの遷移
                                     this.isTimeUp = false;
                                 }
-                                console.log(`New state: ${this.gameState}, Lives: ${this.lives}`);
+                                console.log(`New state: ${this.stateManager.getState()}, Lives: ${this.lives}`);
                             }
                         }
 
