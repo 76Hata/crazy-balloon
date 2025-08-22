@@ -378,7 +378,7 @@
                 setState(newState) {
                     console.log(`State transition: ${this.currentState} -> ${newState}`);
                     this.currentState = newState;
-                    
+
                     // 状態に応じて衝突判定の制御
                     this.updateCollisionDetection();
                 }
@@ -452,10 +452,9 @@
                                 const dotX = col * this.CELL_SIZE + this.CELL_SIZE / 2;
                                 const dotY = row * this.CELL_SIZE + this.CELL_SIZE / 2;
                                 const distance = Math.sqrt(
-                                    Math.pow(balloon.pos.x - dotX, 2) + 
-                                    Math.pow(balloon.pos.y - dotY, 2)
+                                    Math.pow(balloon.pos.x - dotX, 2) + Math.pow(balloon.pos.y - dotY, 2)
                                 );
-                                
+
                                 if (distance < balloon.radius + this.params.DOT_SIZE) {
                                     return true;
                                 }
@@ -473,11 +472,8 @@
                  */
                 checkGoalReached(player, goal) {
                     if (!goal) return false;
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(player.pos.x - goal.x, 2) + 
-                        Math.pow(player.pos.y - goal.y, 2)
-                    );
+
+                    const distance = Math.sqrt(Math.pow(player.pos.x - goal.x, 2) + Math.pow(player.pos.y - goal.y, 2));
                     return distance < 12; // ゴール判定距離
                 }
             }
@@ -548,7 +544,7 @@
                  */
                 updateBalloonSize(balloon, inputVector, deltaTime) {
                     const isMoving = inputVector.x !== 0 || inputVector.y !== 0;
-                    
+
                     if (isMoving) {
                         // 移動中は風船が膨らむ（段階的に）
                         balloon.targetRadius = Math.min(
@@ -585,12 +581,12 @@
                  * @param {number} stageNumber - ステージ番号
                  */
                 loadStage(stageNumber) {
-                    const stageIndex = ((stageNumber - 1) % STAGES.length);
+                    const stageIndex = (stageNumber - 1) % STAGES.length;
                     const stageData = STAGES[stageIndex];
-                    
+
                     console.log(`Loading stage ${stageNumber} (index: ${stageIndex})`);
                     console.log(`Stage data:`, stageData.name);
-                    
+
                     this.currentStage = {
                         id: stageData.id,
                         name: stageData.name,
@@ -600,7 +596,7 @@
                         goal: stageData.goal
                     };
                     this.mazeData = stageData.grid;
-                    
+
                     console.log(`Loaded ${stageData.name}`);
                 }
 
@@ -672,7 +668,7 @@
                     this.lastTime = 0; // 前フレームの時間
                     this.fps = 60; // フレームレート
                     this.frameCount = 0; // フレームカウンタ
-                    
+
                     // ステージ状態フラグ
                     this.isNextStage = false; // 次ステージへの遷移かどうか
                     this.isTimeUp = false; // タイムアップによるリスタートかどうか
@@ -998,7 +994,7 @@
                 updatePlayer(dt) {
                     // PlayerControllerを使用してプレイヤーの位置を更新
                     this.playerController.updatePlayerPosition(this.player, this.inputVector, dt);
-                    
+
                     // PlayerControllerを使用して風船の位置と状態を更新
                     this.playerController.updateBalloon(this.balloon, this.player, this.inputVector, dt);
 
@@ -1041,7 +1037,7 @@
                     if (!this.stateManager.isCollisionDetectionEnabled()) {
                         return false;
                     }
-                    
+
                     const mazeData = this.stageManager.getMazeData();
                     return this.collisionDetector.checkBalloonCollision(this.balloon, mazeData);
                 }
@@ -1054,7 +1050,7 @@
                 checkGoalReached() {
                     const currentStage = this.stageManager.getCurrentStage();
                     if (!currentStage) return false;
-                    
+
                     return this.collisionDetector.checkGoalReached(this.player, currentStage.goal);
                 }
 
@@ -1132,7 +1128,7 @@
                  */
                 onStageCleared() {
                     console.log("Stage cleared!");
-                    
+
                     // スコア加算とステージ進行
                     this.score += 1000;
                     this.stage++;
@@ -1174,7 +1170,7 @@
                     console.log("Resetting player...");
                     const currentStage = this.stageManager.getCurrentStage();
                     console.log("Current stage:", currentStage);
-                    
+
                     if (currentStage) {
                         // ステージの開始位置にプレイヤーを配置
                         this.player.pos = {
@@ -1211,12 +1207,14 @@
                  */
                 loadStageData() {
                     this.stageManager.loadStage(this.stage);
-                    
+
                     // StageManagerからデータを取得してメインゲームクラスを更新
                     this.currentStage = this.stageManager.getCurrentStage();
                     this.mazeData = this.stageManager.getMazeData();
-                    
-                    console.log(`Stage data loaded: ${this.currentStage?.name}, maze size: ${this.mazeData?.length}x${this.mazeData?.[0]?.length}`);
+
+                    console.log(
+                        `Stage data loaded: ${this.currentStage?.name}, maze size: ${this.mazeData?.length}x${this.mazeData?.[0]?.length}`
+                    );
                 }
 
                 updateParticles(dt) {
@@ -1686,7 +1684,7 @@
                     // タイマーの更新
                     this.timer += deltaTime;
                     const currentState = this.stateManager.getState();
-                    
+
                     if (currentState === "PLAYING") {
                         this.stageTimer += deltaTime;
                     } else if (currentState === "RESTART") {
@@ -1738,7 +1736,6 @@
                                 console.log(`New state: ${this.stateManager.getState()}, Lives: ${this.lives}`);
                             }
                         }
-
                     }
 
                     // ゲームロジックの更新（特殊状態以外）
