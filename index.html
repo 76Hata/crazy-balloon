@@ -1639,8 +1639,9 @@
                     this.ctx.fillText("TIME", this.GAME_WIDTH + 50, 125);
                     this.ctx.fillText(displayTime.toString(), this.GAME_WIDTH + 50, 140);
 
-                    // Lives display (as small balloons)
-                    for (let i = 0; i < this.lives; i++) {
+                    // Lives display (as small balloons) - 残機数のみ表示（プレイ中の1機は除く）
+                    const remainingLives = Math.max(0, this.lives - 1);
+                    for (let i = 0; i < remainingLives; i++) {
                         this.ctx.fillStyle = "#ff4444";
                         this.ctx.beginPath();
                         this.ctx.arc(this.GAME_WIDTH + 20 + i * 8, 155, 3, 0, Math.PI * 2);
