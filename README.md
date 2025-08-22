@@ -1,7 +1,7 @@
 # 🎈 Crazy Balloon (クレイジーバルーン) Web版
 
 ## 🕹️デモページ
-![https://76hata.github.io/crazy-balloon/](https://76hata.github.io/crazy-balloon/)
+[デモページ(https://76hata.github.io/crazy-balloon/)](https://76hata.github.io/crazy-balloon/)
 
 
 ## 📋 概要
