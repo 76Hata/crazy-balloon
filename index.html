@@ -550,20 +550,22 @@
                     const isMoving = inputVector.x !== 0 || inputVector.y !== 0;
                     
                     if (isMoving) {
-                        // 移動中は風船が膨らむ
-                        balloon.targetRadius = this.params.BALLOON_MAX_R;
+                        // 移動中は風船が膨らむ（段階的に）
+                        balloon.targetRadius = Math.min(
+                            this.params.BALLOON_MAX_R,
+                            balloon.radius + (this.params.BALLOON_EXPAND_RATE * deltaTime) / 1000
+                        );
                     } else {
-                        // 静止中は風船が縮む
-                        balloon.targetRadius = this.params.BALLOON_MIN_R;
+                        // 静止中は風船が縮む（段階的に）
+                        balloon.targetRadius = Math.max(
+                            this.params.BALLOON_MIN_R,
+                            balloon.radius - (this.params.BALLOON_EXPAND_RATE * deltaTime) / 1000
+                        );
                     }
 
-                    // 現在のサイズを目標サイズに向けて調整
-                    const expandRate = this.params.BALLOON_EXPAND_RATE * (deltaTime / 1000);
-                    if (balloon.radius < balloon.targetRadius) {
-                        balloon.radius = Math.min(balloon.targetRadius, balloon.radius + expandRate);
-                    } else if (balloon.radius > balloon.targetRadius) {
-                        balloon.radius = Math.max(balloon.targetRadius, balloon.radius - expandRate);
-                    }
+                    // スムーズな半径の遷移（以前のロジックを再現）
+                    const radiusDiff = balloon.targetRadius - balloon.radius;
+                    balloon.radius += radiusDiff * 0.1;
                 }
             }
 
