@@ -1205,10 +1205,16 @@
 
                 /**
                  * ステージデータの読み込み
-                 * StageManagerに委謗して処理を実行
+                 * StageManagerに委謗して処理を実行し、メインゲームクラスのデータも更新
                  */
                 loadStageData() {
                     this.stageManager.loadStage(this.stage);
+                    
+                    // StageManagerからデータを取得してメインゲームクラスを更新
+                    this.currentStage = this.stageManager.getCurrentStage();
+                    this.mazeData = this.stageManager.getMazeData();
+                    
+                    console.log(`Stage data loaded: ${this.currentStage?.name}, maze size: ${this.mazeData?.length}x${this.mazeData?.[0]?.length}`);
                 }
 
                 updateParticles(dt) {
